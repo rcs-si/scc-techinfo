@@ -1,3 +1,3 @@
 # scc-techinfo
-SCC Technical Summary
+SCC Technical Summary  
 Authors: Ryan Gilbert
