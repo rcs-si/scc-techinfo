@@ -1,9 +1,12 @@
 import subprocess
 import argparse
 from tabulate import tabulate
+# potential import reductions?
 
 # Define command line arguments
-parser = argparse.ArgumentParser(description="Process cluster node data.")
+parser = argparse.ArgumentParser(
+    prog="scc-techinfo",
+    description="Query and display cluster node data.")
 parser.add_argument("-c", "--cores", type=int, help="Filter rows by minimum number of cores")
 parser.add_argument("-m", "--memory", type=int, help="Filter rows by minimum memory (GB)")
 parser.add_argument("-g", "--gpu_type", type=str, help="Filter rows by GPU type")
