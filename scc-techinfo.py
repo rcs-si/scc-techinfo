@@ -7,6 +7,7 @@ from tabulate import tabulate
 parser = argparse.ArgumentParser(
     prog="scc-techinfo",
     description="Query and display cluster node data.")
+parser.add_argument("-w", "--node", type=str, help="Filter by node name")
 parser.add_argument("-c", "--cores", type=int, help="Filter rows by minimum number of cores")
 parser.add_argument("-m", "--memory", type=int, help="Filter rows by minimum memory (GB)")
 parser.add_argument("-g", "--gpu_type", type=str, help="Filter rows by GPU type")
@@ -110,6 +111,8 @@ count = 0
 for row in data:
     if args.fast and count >= int(args.rows):
         break
+    if args.node and row[0] != args.node:
+        continue
     if args.flag and row[11] != args.flag:
         continue
     if args.cores and int(row[3]) < args.cores:
