@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cluster Nodes</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.css" />
+</head>
+<body style="font-family: 'BentonSansRegular', Arial, 'Lucida Grande', sans-serif; font-size: 0.8em;">
+    <table id="cluster" class="cell-border stripe hover compact">
+        <thead>
+            <tr>
+                <!-- <th>Host Name(s)</th>
+                <th># of Nodes</th>
+                <th>Processors</th>
+                <th>Memory / Node</th>
+                <th>Scratch Disk / Node</th>
+                <th>Network</th>
+                <th>CPU Architecture</th>
+                <th>SU Charge per CPU hour</th> -->
+                <!-- "host", "processor_type", "sockets", "cores", "memory", "disk", "scratch", 
+    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail" -->
+
+                <th>Host</th>
+                <th>Processor Type</th>
+                <!-- <th>Sockets</th> -->
+                <th>Cores</th>
+                <th>Memory (GB)</th>
+                <th>Disk (GB)</th>
+                <th>Scratch (GB)</th>
+                <th>Ethernet (Gbps)</th>
+                <th>InfiniBand (Gbps)</th>
+                <th>GPU Type</th>
+                <th># of GPU</th>
+                <th>Flag</th>
+                <!-- <th>Extra</th> -->
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+    <script src="./data.js"></script>
+    <script>
+        // var data = [
+        //     [
+        //         "scc1.bu.edu",
+        //         "2",
+        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
+        //         "256 GB",
+        //         "885 GB",
+        //         "10 Gbps Ethernet",
+        //         "cascadelake",
+        //         0.0
+        //     ],
+        //     [
+        //         "scc2.bu.edu",
+        //         "2",
+        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
+        //         "256 GB",
+        //         "885 GB",
+        //         "10 Gbps Ethernet",
+        //         "cascadelake",
+        //         0.0
+        //     ],
+        //     [
+        //         "geo.bu.edu",
+        //         "1",
+        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
+        //         "256 GB",
+        //         "885 GB",
+        //         "10 Gbps Ethernet",
+        //         "cascadelake",
+        //         0.0
+        //     ],
+        //     [
+        //         "scc4.bu.edu",
+        //         "1",
+        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
+        //         "256 GB",
+        //         "885 GB",
+        //         "10 Gbps Ethernet",
+        //         "cascadelake",
+        //         0.0
+        //     ],
+        // ];
+
+
+        $(document).ready(function() {
+            $('#cluster').DataTable( {
+            data: data
+        } );
+        });
+    </script>
+</body>
+</html>
