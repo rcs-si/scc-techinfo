@@ -22,6 +22,7 @@ parser.add_argument("-f", "--flag", help="Filter rows by flag field (S or B)")
 parser.add_argument("-b", "--extra_batch", type=str, help="Filter rows by extra batch info")
 parser.add_argument("-a", "--avail_cpu", type=int, help="Filter rows by minimum available cpus")
 parser.add_argument("-j", "--avail_gpu", type=int, help="Filter rows by minimum available gpus")
+parser.add_argument("-q", "--queue", type=str, help="Filter rows by queue name")
 parser.add_argument("-r", "--rows", type=int, default=10, help="Number of rows to display (default: 10)")
 parser.add_argument("--fast", action="store_true", help="Stops filtering once number of rows to display argument hit")
 args = parser.parse_args()
@@ -29,13 +30,16 @@ args = parser.parse_args()
 # Define the command to run
 command_nodes = "cat /usr/local/sge/scv/nodes/master"
 command_gpus = "qgpus -v"
+command_queues = "qhost -q"
 
 # Run the commands and capture output
 result_nodes = subprocess.run(command_nodes, shell=True, capture_output=True, text=True)
 result_gpus = subprocess.run(command_gpus, shell=True, capture_output=True, text=True)
+result_queues = subprocess.run(command_queues, shell=True, capture_output=True, text=True)
 
 output_nodes = result_nodes.stdout
 output_gpus = result_gpus.stdout
+output_queues = result_queues.stdout
 
 # Parse the cluster node data
 lines = output_nodes.splitlines()
@@ -52,7 +56,7 @@ for line in lines:
 
 headers = [
     "host", "processor_type", "sockets", "cores", "memory", "disk", "scratch", 
-    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail"
+    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail", "queues"
 ]
 
 # Parse GPU availability data
@@ -79,21 +83,49 @@ for line in gpu_lines:
 # Convert GPU data into a dictionary for easy lookup
 gpu_dict = {row[0]: row[1:] for row in gpu_data}  # host -> GPU details
 
-# Merge GPU info with node data
+# Parse queue information
+def parse_queue_info(output_queues):
+    """Parse qhost -q output to extract hostname -> queues mapping"""
+    lines = output_queues.splitlines()
+    queue_dict = {}
+    current_host = None
+    
+    for line in lines:
+        if line.strip() == "" or line.startswith("-") or "HOSTNAME" in line:
+            continue
+            
+        # Check if line starts with whitespace/tab (queue line) or not (hostname line)
+        if line.startswith(('\t', ' ')):
+            # This is a queue line (indented)
+            if current_host:
+                parts = line.strip().split()
+                if parts:
+                    queue_name = parts[0]
+                    # Skip lines that are just queue status info (BIP, numbers, 'd', etc.)
+                    if not any(char.isdigit() for char in queue_name) and queue_name not in ['BIP', 'd']:
+                        queue_dict[current_host].append(queue_name)
+        else:
+            # This is a hostname line (not indented)
+            parts = line.split()
+            if parts:
+                current_host = parts[0]
+                # Skip the global line and any other non-hostname entries
+                if current_host != 'global':
+                    queue_dict[current_host] = []
+    
+    return queue_dict
+
+queue_dict = parse_queue_info(output_queues)
+
+# Merge GPU info and queue info with node data
 for row in data:
     host = row[0]
+    
+    # Add GPU info
     if host in gpu_dict:
-        # row.extend(gpu_dict[host])
         gpu_entry = gpu_dict[host]
-
-        # append cpu/gpu avail, total
-        # note later down we reformat to single col
-        # leaving here to discuss with team
-        # row.append(f"{int(gpu_entry[3]) - int(gpu_entry[4])} / {int(gpu_entry[3])}")
-        # row.append(f"{int(gpu_entry[7])} / {int(gpu_entry[5])}")
         row.append(int(gpu_entry[3]) - int(gpu_entry[4]))
         row.append(int(gpu_entry[3]))
-
         row.append(int(gpu_entry[7]))
         row.append(int(gpu_entry[5]))
     else:
@@ -102,10 +134,15 @@ for row in data:
         row.append(-1)
         row.append(-1)
         row.append(-1)
+    
+    # Add queue info
+    if host in queue_dict:
+        queues = ', '.join(queue_dict[host])
+        row.append(queues)
+    else:
+        row.append("")
 
 # Apply filters efficiently
-# NOTE if run time gets too long, we can stop filtering
-# when we hit the number of rows, but removes total count print
 filtered_data = []
 count = 0
 for row in data:
@@ -141,29 +178,27 @@ for row in data:
         continue
     if args.avail_gpu and row[15] < args.avail_gpu:
         continue
+    if args.queue and args.queue.lower() not in row[17].lower():
+        continue
 
     count += 1
     # format cpu/gpu avail to single col
-    # maybe change
     if row[13] != -1: # sometimes don't have info from qgpus
-        row.append(f"{row[13]} / {row[14]}")
-        row.append(f"{row[15]} / {row[16]}")
+        cpu_avail_formatted = f"{row[13]} / {row[14]}"
+        gpu_avail_formatted = f"{row[15]} / {row[16]}"
     else:
-        row.append("")
-        row.append("")
-    row.pop(13)
-    row.pop(13)
-    row.pop(13)
-    row.pop(13)
-
-    filtered_data.append(row)
+        cpu_avail_formatted = ""
+        gpu_avail_formatted = ""
+    
+    # Create final row with formatted availability and queues
+    final_row = row[:13] + [cpu_avail_formatted, gpu_avail_formatted, row[17]]
+    filtered_data.append(final_row)
 
 # Print formatted table output
 def print_table(data, headers, num_rows):
     print(tabulate(data[:num_rows], headers=headers, tablefmt="grid"))
 
 if len(filtered_data):
-    # print_table(filtered_data, headers[:len(filtered_data[0])], args.rows)
     print_table(filtered_data, headers, args.rows)
     if not args.fast:
         print(f"There are a total of {len(filtered_data)} matching nodes.")
