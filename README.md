@@ -2,7 +2,6 @@
 SCC Technical Summary  
 Authors: Ryan Gilbert
 
-Here is a **README.md** file for your script and accompanying Bash wrapper (`scc-techinfo`):
 
 ---
 
