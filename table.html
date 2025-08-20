@@ -5,33 +5,26 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.css" />
 </head>
 <body style="font-family: 'BentonSansRegular', Arial, 'Lucida Grande', sans-serif; font-size: 0.8em;">
+    <!-- Filter Controls -->
+    <div style="margin-bottom:10px;">
+      <label><input type="checkbox" id="cpuOnly"> Show CPU only nodes</label>
+      <label style="margin-left:10px;"><input type="checkbox" id="gpuOnly"> Show Nodes With GPU</label>
+      <label style="margin-left:10px;"><input type="checkbox" id="sharedOnly"> Show only Shared nodes</label>
+      <label style="margin-left:10px;">Minimum RAM (GB):
+        <input type="number" id="minRAM" min="0" style="width:60px;">
+      </label>
+    </div>
+    <!-- Table -->
     <table id="cluster" class="cell-border stripe hover compact">
         <thead>
             <tr>
-                <!-- <th>Host Name(s)</th>
-                <th># of Nodes</th>
-                <th>Processors</th>
-                <th>Memory / Node</th>
-                <th>Scratch Disk / Node</th>
-                <th>Network</th>
-                <th>CPU Architecture</th>
-                <th>SU Charge per CPU hour</th> -->
-                <!-- "host", "processor_type", "sockets", "cores", "memory", "disk", "scratch", 
-    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail" -->
-
-                <th>Host</th>
-                <th>Processor Type</th>
-                <!-- <th>Sockets</th> -->
+                <th>Host<br>Names</th>
+                <th>Processor<br>Type</th>
                 <th>Cores</th>
-                <th>Memory (GB)</th>
-                <th>Disk (GB)</th>
-                <th>Scratch (GB)</th>
-                <th>Ethernet (Gbps)</th>
-                <th>InfiniBand (Gbps)</th>
-                <th>GPU Type</th>
-                <th># of GPU</th>
-                <th>Flag</th>
-                <!-- <th>Extra</th> -->
+                <th>Memory<br>(GB)</th>
+                <th>GPU<br>Type</th>
+                <th># of<br>GPU</th>
+                <th>(S)hared /<br> (B)uy in</th>
             </tr>
         </thead>
         <tbody>
@@ -42,54 +35,35 @@
     <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
     <script src="./data.js"></script>
     <script>
-        // var data = [
-        //     [
-        //         "scc1.bu.edu",
-        //         "2",
-        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
-        //         "256 GB",
-        //         "885 GB",
-        //         "10 Gbps Ethernet",
-        //         "cascadelake",
-        //         0.0
-        //     ],
-        //     [
-        //         "scc2.bu.edu",
-        //         "2",
-        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
-        //         "256 GB",
-        //         "885 GB",
-        //         "10 Gbps Ethernet",
-        //         "cascadelake",
-        //         0.0
-        //     ],
-        //     [
-        //         "geo.bu.edu",
-        //         "1",
-        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
-        //         "256 GB",
-        //         "885 GB",
-        //         "10 Gbps Ethernet",
-        //         "cascadelake",
-        //         0.0
-        //     ],
-        //     [
-        //         "scc4.bu.edu",
-        //         "1",
-        //         "2 sixteen-core 2.8 GHz Intel Gold 6242",
-        //         "256 GB",
-        //         "885 GB",
-        //         "10 Gbps Ethernet",
-        //         "cascadelake",
-        //         0.0
-        //     ],
-        // ];
+        // Custom filter logic
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            var processorType = data[1].trim().toLowerCase();
+            var memoryGB = parseInt(data[3]);
+            var gpuType = data[4].trim().toLowerCase();
+            var numGPU = parseInt(data[5]);
+            var sharing = data[6].trim().toUpperCase();
 
+            var cpuOnly = $('#cpuOnly').prop('checked');
+            var gpuOnly = $('#gpuOnly').prop('checked');
+            var sharedOnly = $('#sharedOnly').prop('checked');
+            var minRAM = parseInt($('#minRAM').val()) || 0;
+
+            if (cpuOnly && (gpuType !== 'none' || numGPU > 0)) return false;
+            if (gpuOnly && (gpuType === 'none' || numGPU === 0)) return false;
+            if (sharedOnly && sharing !== 'S') return false;
+            if (memoryGB < minRAM) return false;
+
+            return true;
+        });
 
         $(document).ready(function() {
-            $('#cluster').DataTable( {
-            data: data
-        } );
+            var table = $('#cluster').DataTable({
+                data: data
+            });
+
+            $('#cpuOnly, #gpuOnly, #sharedOnly, #minRAM').on('change keyup', function() {
+                table.draw();
+            });
         });
     </script>
 </body>
