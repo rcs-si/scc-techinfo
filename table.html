@@ -42,27 +42,93 @@
             var gpuType = data[4].trim().toLowerCase();
             var numGPU = parseInt(data[5]);
             var sharing = data[6].trim().toUpperCase();
-
+    
             var cpuOnly = $('#cpuOnly').prop('checked');
             var gpuOnly = $('#gpuOnly').prop('checked');
             var sharedOnly = $('#sharedOnly').prop('checked');
             var minRAM = parseInt($('#minRAM').val()) || 0;
-
+    
             if (cpuOnly && (gpuType !== 'none' || numGPU > 0)) return false;
             if (gpuOnly && (gpuType === 'none' || numGPU === 0)) return false;
             if (sharedOnly && sharing !== 'S') return false;
             if (memoryGB < minRAM) return false;
-
+    
             return true;
         });
+    
+        // Function to build the hostnames cell with vertical preview and expand/collapse
+        function buildHostnamesCell(hostnames, idx) {
+            if (!Array.isArray(hostnames)) {
+                if (typeof hostnames === 'string') {
+                    hostnames = hostnames.split(',').map(h => h.trim()).filter(Boolean);
+                } else {
+                    hostnames = [];
+                }
+            }
+            var previewCount = 3;
+            var previewHosts = hostnames.slice(0, previewCount);
+            var hiddenHosts = hostnames.slice(previewCount);
 
-        $(document).ready(function() {
-            var table = $('#cluster').DataTable({
-                data: data
+            var expanderId = "hostexpander-" + idx;
+            var html = '<ul style="margin:0; padding-left:20px;">';
+
+            // Show all preview hosts
+            previewHosts.forEach(function(h) {
+                html += '<li>' + h + '</li>';
             });
-
+            // If there are hidden hosts, render them in a div (default hidden)
+            if (hiddenHosts.length > 0) {
+                html += '<li><span class="host-expander" style="color:blue; cursor:pointer;" data-target="' + expanderId + '" data-action="expand">[+' + hiddenHosts.length + ' more]</span></li>';
+                html += '<div id="' + expanderId + '" style="display:none;">';
+                hiddenHosts.forEach(function(h) {
+                    html += '<li>' + h + '</li>';
+                });
+                html += '<li><span class="host-expander" style="color:blue; cursor:pointer;" data-target="' + expanderId + '" data-action="collapse">[- hide]</span></li>';
+                html += '</div>';
+            }
+            html += '</ul>';
+            return html;
+        }
+    
+        $(document).ready(function() {
+            // Prepare data: convert hostnames array to display string with expander
+            var tableRows = data.map(function(row, idx) {
+                // row: [hostnames array, processor_type, cores, memory, gpu_type, gpus, flag]
+                var hostnamesCell = buildHostnamesCell(row[0], idx);
+                return [
+                    hostnamesCell,
+                    row[1], // processor_type
+                    row[2], // cores
+                    row[3], // memory
+                    row[4], // gpu_type
+                    row[5], // gpus
+                    row[6]  // flag
+                ];
+            });
+    
+            var table = $('#cluster').DataTable({
+                data: tableRows
+            });
+    
             $('#cpuOnly, #gpuOnly, #sharedOnly, #minRAM').on('change keyup', function() {
                 table.draw();
+            });
+    
+            // Expander click handler (only one button visible at a time)
+            $('#cluster').on('click', '.host-expander', function() {
+                var tgt = $(this).data('target');
+                var action = $(this).data('action');
+                if (action === 'expand') {
+                    // Hide [+N more], show expanded area
+                    $(this).closest('li').hide();
+                    $('#' + tgt).show();
+                } else if (action === 'collapse') {
+                    // Hide expanded area, show [+N more]
+                    $('#' + tgt).hide();
+                    // Find and show the [+N more] button in the same cell
+                    var cell = $(this).closest('td, div').parent();
+                    cell.find('span.host-expander[data-target="' + tgt + '"][data-action="expand"]').closest('li').show();
+                }
             });
         });
     </script>

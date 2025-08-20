@@ -76,7 +76,7 @@ else:
 # Merge GPU info into nodes_df (if needed for persistent fields)
 df = nodes_df.merge(gpus_df, on='host', how='left', suffixes=('', '_gpu'))
 
-# Filters: chain DataFrame queries, drop all "avail" field logic
+# Filters (no avail columns)
 filt = pd.Series([True] * len(df))
 
 if args.node:
@@ -108,33 +108,38 @@ if args.extra_batch:
 
 filtered = df[filt].copy()
 
-# Apply --fast limit
-if args.fast:
-    filtered = filtered.head(args.rows)
-
-# Drop columns you don't want in export:
-drop_cols = ['sockets', 'disk', 'scratch', 'eth_speed', 'ib_speed', 'extra_batch'] # adjust as needed
-filtered = filtered.drop(columns=drop_cols, errors='ignore')
-
-# Reorder columns as in your JS table
-output_cols = [
-    'host',
-    'processor_type',
-    'cores',
-    'memory',
-    'gpu_type',
-    'gpus',
-    'flag'
+# Specify grouping columns
+group_cols = [
+    'processor_type', 'cores', 'memory', 'gpu_type', 'gpus', 'flag'
 ]
-output_cols = [c for c in output_cols if c in filtered.columns]
-filtered = filtered[output_cols]
 
-# Save JSON
-with open("output.txt", 'w+') as outfile:
-    json.dump(filtered.values.tolist(), outfile, indent=4)
+grouped = (
+    filtered
+    .groupby(group_cols)
+    .agg(
+        quantity=('host', 'count'),
+        hostnames=('host', lambda x: sorted(list(x))) # optional: collect sorted list of hostnames per group
+    )
+    .reset_index()
+)
 
-# Print formatted table preview
-print(filtered.head(args.rows).to_markdown())
+# For export, you'll probably only want to show quantity
+# If you want hostnames for debugging, keep that too!
+output_cols = group_cols + ['quantity', 'hostnames'] # add 'hostnames' if you want that to be exported as well
+export_data = grouped[output_cols].values.tolist()
+
+# Save in JS display order: [hostnames, processor_type, cores, memory, gpu_type, gpus, flag]
+export_data = grouped.apply(
+    lambda row: [row['hostnames'], row['processor_type'], row['cores'], row['memory'], row['gpu_type'], row['gpus'], row['flag']],
+    axis=1
+).tolist()
+
+with open("output_grouped.json", 'w') as outfile:
+    json.dump(export_data, outfile, indent=2)
+
+# Print preview table
+print(grouped[output_cols].head(args.rows).to_markdown())
 
 if not args.fast:
     print(f"There are a total of {len(filtered)} matching nodes.")
+    print(f"There are {len(grouped)} unique configurations (groups).")
