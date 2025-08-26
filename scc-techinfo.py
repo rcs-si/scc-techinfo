@@ -61,6 +61,11 @@ headers = [
     "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail", "queues"
 ]
 
+headers = [
+    "host", "processor_type", "cores", "memory", 
+    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "cpu_avail", "gpu_avail", "queues"
+]
+
 # Parse GPU availability data
 gpu_data = []
 gpu_table_started = False
@@ -100,8 +105,6 @@ def parse_queue_info(output_queues):
         if line.startswith(('\t', ' ')):
             # This is a queue line (indented)
             if current_host:
-                if current_host == 'scc-c08':
-                    print('yippee!',line.strip().split())
                 parts = line.strip().split()
                 if parts:
                     queue_name = parts[0]
@@ -114,8 +117,6 @@ def parse_queue_info(output_queues):
             parts = line.split()
             if parts:
                 current_host = parts[0]
-                if current_host == 'scc-c08':
-                    print('yippee!',)
                 # Skip the global line and any other non-hostname entries
                 if current_host != 'global':
                     queue_dict[current_host] = []
@@ -200,6 +201,19 @@ for row in data:
     
     # Create final row with formatted availability and queues
     final_row = row[:13] + [cpu_avail_formatted, gpu_avail_formatted, row[17]]
+    
+
+    # Delete some rows:
+    final_row.pop(2) # sockets
+    final_row.pop(4) # disk
+    final_row.pop(4) # scratch
+    final_row.pop(9) # extra_batch
+
+#     headers = [
+#     "host", "processor_type", "sockets", "cores", "memory", "disk", "scratch", 
+#     "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "extra_batch", "cpu_avail", "gpu_avail", "queues"
+# ]
+
     filtered_data.append(final_row)
 
 # Print formatted table output
