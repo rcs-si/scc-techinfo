@@ -62,8 +62,8 @@ headers = [
 ]
 
 headers = [
-    "host", "processor_type", "cores", "memory", 
-    "eth_speed", "ib_speed", "gpu_type", "gpus", "flag", "cpu_avail", "gpu_avail", "queues"
+    "Host", "Processor\nType", "Cores", "Memory\n(GB)", 
+    "Eth\nSpeed", "IB\nSpeed", "GPU", "GPU\nCount", "(S)hared\n(B)uy in", "CPU\nAvail", "GPU\nAvail", "Queues"
 ]
 
 # Parse GPU availability data
