@@ -24,7 +24,9 @@ parser.add_argument("-a", "--avail_cpu", type=int, help="Filter rows by minimum 
 parser.add_argument("-j", "--avail_gpu", type=int, help="Filter rows by minimum available gpus")
 parser.add_argument("-q", "--queue", type=str, help="Filter rows by queue name")
 parser.add_argument("-r", "--rows", type=int, default=10, help="Number of rows to display (default: 10)")
-parser.add_argument("--fast", action="store_true", help="Stops filtering once number of rows to display argument hit")
+parser.add_argument("--all", action="store_true", help="Rather than specify count, display all matching nodes.")
+parser.add_argument("--count", action="store_true", help="Display count of matching nodes, rather than the table.")
+# parser.add_argument("--fast", action="store_true", help="Stops filtering once number of rows to display argument hit")
 args = parser.parse_args()
 
 # Define the command to run
@@ -146,8 +148,8 @@ for row in data:
 filtered_data = []
 count = 0
 for row in data:
-    if args.fast and count >= int(args.rows):
-        break
+    # if args.fast and count >= int(args.rows):
+    #     break
     if args.node and row[0] != args.node:
         continue
     if args.flag and row[11] != args.flag:
@@ -199,8 +201,11 @@ def print_table(data, headers, num_rows):
     print(tabulate(data[:num_rows], headers=headers, tablefmt="grid"))
 
 if len(filtered_data):
-    print_table(filtered_data, headers, args.rows)
-    if not args.fast:
+    if args.count:
+        print(len(filtered_data))
+    else:
+        print_table(filtered_data, headers, int(9e9) if args.all else args.rows)
+        # if not args.fast:
         print(f"There are a total of {len(filtered_data)} matching nodes.")
 else:
     print("No matching nodes that fit your requirements!")
