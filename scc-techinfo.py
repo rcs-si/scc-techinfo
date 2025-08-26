@@ -18,7 +18,7 @@ parser.add_argument("-x", "--scratch", type=int, help="Filter rows by minimum sc
 parser.add_argument("-e", "--eth_speed", type=int, help="Filter rows by minimum Ethernet speed")
 parser.add_argument("-i", "--ib_speed", type=int, help="Filter rows by minimum InfiniBand speed")
 parser.add_argument("-n", "--gpus", type=int, help="Filter rows by minimum number of GPUs")
-parser.add_argument("-f", "--flag", help="Filter rows by flag field (S or B)")
+parser.add_argument("-f", "--flag", help="Filter rows by shared/buy in field (S or B)")
 parser.add_argument("-b", "--extra_batch", type=str, help="Filter rows by extra batch info")
 parser.add_argument("-a", "--avail_cpu", type=int, help="Filter rows by minimum available cpus")
 parser.add_argument("-j", "--avail_gpu", type=int, help="Filter rows by minimum available gpus")
@@ -100,17 +100,22 @@ def parse_queue_info(output_queues):
         if line.startswith(('\t', ' ')):
             # This is a queue line (indented)
             if current_host:
+                if current_host == 'scc-c08':
+                    print('yippee!',line.strip().split())
                 parts = line.strip().split()
                 if parts:
                     queue_name = parts[0]
                     # Skip lines that are just queue status info (BIP, numbers, 'd', etc.)
-                    if not any(char.isdigit() for char in queue_name) and queue_name not in ['BIP', 'd']:
-                        queue_dict[current_host].append(queue_name)
+                    # if not any(char.isdigit() for char in queue_name) and queue_name not in ['BIP', 'd']:
+                    #     queue_dict[current_host].append(queue_name)
+                    queue_dict[current_host].append(queue_name)
         else:
             # This is a hostname line (not indented)
             parts = line.split()
             if parts:
                 current_host = parts[0]
+                if current_host == 'scc-c08':
+                    print('yippee!',)
                 # Skip the global line and any other non-hostname entries
                 if current_host != 'global':
                     queue_dict[current_host] = []
@@ -139,7 +144,8 @@ for row in data:
     
     # Add queue info
     if host in queue_dict:
-        queues = ', '.join(queue_dict[host])
+        # queues = ', '.join(queue_dict[host])
+        queues = "\n".join(queue_dict[host])
         row.append(queues)
     else:
         row.append("")
