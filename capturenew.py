@@ -83,8 +83,10 @@ export_data = grouped.apply(
     axis=1
 ).tolist()
 
-with open("new_output_grouped.json", 'w') as outfile:
+with open("data.js", 'w') as outfile:
+    outfile.write("const data = ")
     json.dump(export_data, outfile, indent=2)
+    outfile.write(";")
 
 # Print preview table
 print(grouped[output_cols].head().to_markdown())
