@@ -52,7 +52,7 @@
     <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
     <script src="./data.js"></script>
     <script>
-        // --- Custom filter logic stays unchanged ---
+        // --- Custom filter logic ---
         $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
             var processorType = data[2].trim().toLowerCase();
             var memoryGB = parseInt(data[4]);

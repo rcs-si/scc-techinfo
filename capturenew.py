@@ -13,8 +13,6 @@ print(df['processor_type'].unique())
 # scc-globus, not shown?
 print(df[df['processor_type']=='E5-2407v2'])
 
-
-
 # 112 groups on scc page, but this generates 118
 df['gpu_type'] = df['gpu_type'].fillna('None')
 
@@ -35,6 +33,7 @@ grouped = (
 )
 print("number of groups:", len(grouped))
 
+# map cpu names from the file to anchor tags with links for better display
 cpu_display_map = {
     'Gold-6242': '<a href="https://ark.intel.com/content/www/us/en/ark/products/192440/intel-xeon-gold-6242-processor-22m-cache-2-80-ghz.html" target="_blank">Intel Gold 6242</a>',
     'E5-2407v2': 'Intel E5-2407v2',
@@ -74,7 +73,7 @@ print(grouped.columns)
 grouped['processor_type'] = grouped['processor_type'] + "<br>"
 grouped['processor_type'] = grouped['processor_type'] + grouped["cpu_arch"]
 
-output_cols = group_cols + ['quantity', 'hostnames'] # add 'hostnames' if you want that to be exported as well
+output_cols = group_cols + ['quantity', 'hostnames']
 export_data = grouped[output_cols].values.tolist()
 
 # Save in JS display order: [hostnames, processor_type, cores, memory, gpu_type, gpus, flag]
@@ -83,6 +82,7 @@ export_data = grouped.apply(
     axis=1
 ).tolist()
 
+# output to a "js" file, containing just the const array that will be used for the table
 with open("data.js", 'w') as outfile:
     outfile.write("const data = ")
     json.dump(export_data, outfile, indent=2)
