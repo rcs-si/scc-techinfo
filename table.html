@@ -118,9 +118,13 @@
                         <li>Memory: ${row[3]} GB</li>
                         <li>GPU: ${row[4]} (${row[5]})</li>
                         <li>Flag: ${row[6]}</li>
-                        Other info:
+                    </ul>
             `;
             if (typeof row[7] !== 'undefined') {
+                base += `
+                    <b>Other info:</b>
+                    <ul>
+                `;
                 row[7].forEach(element => {
                     base += `<li>${element}</li>`;
                 });
