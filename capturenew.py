@@ -76,13 +76,16 @@ grouped['processor_type'] = grouped['processor_type'].map(cpu_display_map)
 print(grouped.columns)
 grouped['processor_type'] = grouped['processor_type'] + "<br>"
 grouped['processor_type'] = grouped['processor_type'] + grouped["cpu_arch"]
+grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem']].values.tolist()
+grouped['extra_info'] = grouped['extra_info'].apply(lambda x: [v for v in x if v != "None"])
+
 
 output_cols = group_cols + ['quantity', 'hostnames']
 export_data = grouped[output_cols].values.tolist()
 
 # Save in JS display order: [hostnames, processor_type, cores, memory, gpu_type, gpus, flag]
 export_data = grouped.apply(
-    lambda row: [row['hostnames'], row['processor_type'], row['cores'], row['memory'], row['gpu_type'], row['gpus'], row['flag'], [row["gpu_cc"], row["gpu_mem"]]],
+    lambda row: [row['hostnames'], row['processor_type'], row['cores'], row['memory'], row['gpu_type'], row['gpus'], row['flag'], row['extra_info']],
     axis=1
 ).tolist()
 
