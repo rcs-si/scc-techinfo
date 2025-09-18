@@ -18,17 +18,23 @@
             margin: 10px 20px;
             padding: 10px;
         }
+        a:link {
+            color: blue;
+        }
+        a:visited {
+            color: blue;
+        }
     </style>
 </head>
-<body style="font-family: 'BentonSansRegular', Arial, 'Lucida Grande', sans-serif; font-size: 0.8em;">
+<body style="font-family: 'BentonSansRegular', Arial, 'Lucida Grande', sans-serif; font-size: 0.9em;">
     <!-- Filter Controls -->
-    <div style="margin-bottom:10px;">
-      <label><input type="checkbox" id="cpuOnly"> Show CPU only nodes</label>
-      <label style="margin-left:10px;"><input type="checkbox" id="gpuOnly"> Show Nodes With GPU</label>
-      <label style="margin-left:10px;"><input type="checkbox" id="sharedOnly"> Show only Shared nodes</label>
-      <label style="margin-left:10px;">Minimum RAM (GB):
-        <input type="number" id="minRAM" min="0" style="width:60px;">
-      </label>
+    <div style="margin-bottom:10px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <label><input type="checkbox" id="cpuOnly"> Show Only Nodes Without GPU</label>
+        <label><input type="checkbox" id="gpuOnly"> Show Only Nodes With GPU</label>
+        <label><input type="checkbox" id="sharedOnly"> Show only Shared nodes</label>
+        <label>Minimum RAM (GB):
+            <input type="number" id="minRAM" min="0" style="width:60px;">
+        </label>
     </div>
     <!-- Table -->
     <table id="cluster" class="cell-border stripe hover compact">
@@ -208,7 +214,7 @@
                 } else {
                     // Open: change to X icon, show info
                     tr.addClass('shown');
-                    $(this).find('span.details-icon').html('&#10799;'); // ⨯
+                    $(this).find('span.details-icon').html('&#8854;'); // ⊖
                     // Show info from hidden column
                     row.child(row.data()[8]).show();
                 }
