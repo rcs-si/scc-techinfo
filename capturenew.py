@@ -15,10 +15,14 @@ print(df[df['processor_type']=='E5-2407v2'])
 
 # 112 groups on scc page, but this generates 118
 df['gpu_type'] = df['gpu_type'].fillna('None')
+df['gpu_cc'] = df['gpu_cc'].fillna('None')
+df['gpu_cc'] = df['gpu_cc'].apply(lambda x: f"Compute capability: {x}" if x != 'None' else x)
+df['gpu_mem'] = df['gpu_mem'].fillna('None')
+df['gpu_mem'] = df['gpu_mem'].apply(lambda x: f"GPU Memory: {x}GB" if x != 'None' else x)
 
 # group by:
 group_cols = [
-    'processor_type', 'cores', 'memory','scratch','eth_speed', 'gpu_type', 'gpus', 'flag', 'cpu_arch'
+    'processor_type', 'cores', 'memory','scratch','eth_speed', 'gpu_type', 'gpus', 'flag', 'cpu_arch', "gpu_cc", "gpu_mem"
 ]
 
 
@@ -78,7 +82,7 @@ export_data = grouped[output_cols].values.tolist()
 
 # Save in JS display order: [hostnames, processor_type, cores, memory, gpu_type, gpus, flag]
 export_data = grouped.apply(
-    lambda row: [row['hostnames'], row['processor_type'], row['cores'], row['memory'], row['gpu_type'], row['gpus'], row['flag']],
+    lambda row: [row['hostnames'], row['processor_type'], row['cores'], row['memory'], row['gpu_type'], row['gpus'], row['flag'], [row["gpu_cc"], row["gpu_mem"]]],
     axis=1
 ).tolist()
 
