@@ -13,7 +13,6 @@ This project provides a Python script for processing cluster node data, allowing
 ## Features  
 - Filters SCC cluster nodes based on CPU cores, memory, GPUs, and other hardware attributes.  
 - Parses system information from predefined commands.  
-- Supports fast filtering to limit results quickly.  
 - Displays results in a tabulated format for easy reading.  
 
 ## Usage  
@@ -23,24 +22,7 @@ scc-techinfo [options]
 ```  
 
 ### Available Options  
-| Option | Description |
-|--------|-------------|
-| `-c, --cores` | Minimum number of CPU cores |
-| `-m, --memory` | Minimum memory in GB |
-| `-g, --gpu_type` | Filter by GPU type |
-| `-p, --processor_type` | Filter by processor type |
-| `-s, --sockets` | Minimum number of CPU sockets |
-| `-d, --disk` | Minimum disk space (GB) |
-| `-x, --scratch` | Minimum scratch space (GB) |
-| `-e, --eth_speed` | Minimum Ethernet speed (Gbps) |
-| `-i, --ib_speed` | Minimum InfiniBand speed (Gbps) |
-| `-n, --gpus` | Minimum number of GPUs |
-| `-f, --flag` | Filter by shared/buy in flag (S or B) |
-| `-b, --extra_batch` | Filter by extra batch information |
-| `-a, --avail_cpu` | Minimum available CPUs |
-| `-j, --avail_gpu` | Minimum available GPUs |
-| `-r, --rows` | Number of rows to display (default: 10) |
-| `--fast` | Stop filtering once the requested number of rows is found |
+See ./scc-techinfo --help for options
 
 ### Examples  
 
@@ -54,37 +36,24 @@ scc-techinfo [options]
    scc-techinfo -g=A100 -j=2
    ```
 
-3. **Quickly find the first 5 nodes with at least 10 GPUs**  
+3. **Find the first 5 nodes with at least 10 GPUs**  
    ```bash
-   scc-techinfo -n=10 -r=5 --fast
+   scc-techinfo -n=10 -r=5
    ```
 
 ## Notes  
 - The `scc-techinfo` script acts as a wrapper to execute the Python script with all arguments.  
 - If no matching nodes are found, the script will notify the user.  
-- Using `--fast` can slightly improve performance by stopping filtering early.  
-
-
-
 
 
 ---
-# notes from first proj. meeting:
 
-### Master file:
-/usr/local/sge/scv/nodes/master  
+# Tech Summary Table for Webpage
 
-"flag" field:
-- s - shared nodes  
-- b - buyin nodes  
+To generate a current version for the tech summary webpage, run:
+```bash
+python3 capturenew.py
+``` 
+This uses the /projectnb/rcsmetrics/nodes/data/nodes.csv file.  
 
-
-### Additional commands that might be useful:
-
-- `qhost -q`  - list of nodes with information about number of cores and memory used
-- `qconf -sq <qname>` - list of policies for a queue
-
-
-Make file executable: `chmod +x scc-techinfo`
-
-
+The result of this script is the data.js file containing an array for the table page.
