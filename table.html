@@ -24,6 +24,9 @@
         a:visited {
             color: blue;
         }
+        input[type="checkbox"] {
+            transform: scale(1.25);
+        }
     </style>
 </head>
 <body style="font-family: 'BentonSansRegular', Arial, 'Lucida Grande', sans-serif; font-size: 0.9em;">
@@ -126,7 +129,7 @@
                         <li>Flag: ${row[6]}</li>
                     </ul>
             `;
-            if (typeof row[7] !== 'undefined') {
+            if (typeof row[7] !== 'undefined' && row[7].length) {
                 base += `
                     <b>Other info:</b>
                     <ul>
