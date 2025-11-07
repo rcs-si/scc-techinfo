@@ -78,6 +78,7 @@ grouped['processor_type'] = grouped['processor_type'] + "<br>"
 grouped['processor_type'] = grouped['processor_type'] + grouped["cpu_arch"]
 grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem']].values.tolist()
 grouped['extra_info'] = grouped['extra_info'].apply(lambda x: [v for v in x if v != "None"])
+grouped['flag'] = grouped['flag'].map({'S':'Shared'. 'B':'Buyin'})
 
 
 output_cols = group_cols + ['quantity', 'hostnames']
