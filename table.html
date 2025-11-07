@@ -164,7 +164,7 @@
 
             if (cpuOnly && (gpuType !== 'none' || numGPU > 0)) return false;
             if (gpuOnly && (gpuType === 'none' || numGPU === 0)) return false;
-            if (sharedOnly && sharing !== 'S') return false;
+            if (sharedOnly && sharing !== 'SHARED') return false;
             if (memoryGB < minRAM) return false;
 
             return true;
