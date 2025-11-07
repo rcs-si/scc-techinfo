@@ -13,7 +13,7 @@ df = df[df["netbox_status"] == "Active"]
 # 112 groups on scc page, but this generates 118
 df['gpu_type'] = df['gpu_type'].fillna('None')
 df['gpu_cc'] = df['gpu_cc'].fillna('None')
-df['gpu_cc'] = df['gpu_cc'].apply(lambda x: f"Compute capability: {x}" if x != 'None' else x)
+df['gpu_cc'] = df['gpu_cc'].apply(lambda x: f"Cuda GPU Compute Capability: {x}" if x != 'None' else x)
 df['gpu_mem'] = df['gpu_mem'].fillna('None')
 df['gpu_mem'] = df['gpu_mem'].apply(lambda x: f"GPU Memory: {x}GB" if x != 'None' else x)
 
