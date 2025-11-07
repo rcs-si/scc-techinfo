@@ -8,10 +8,7 @@ df = pd.read_csv("/projectnb/rcsmetrics/nodes/data/nodes.csv")
 df = df[df["netbox_status"] == "Active"]
 
 # for figuring out cpu manual URL map
-print(df['processor_type'].unique())
-
-# scc-globus, not shown?
-print(df[df['processor_type']=='E5-2407v2'])
+# print(df['processor_type'].unique())
 
 # 112 groups on scc page, but this generates 118
 df['gpu_type'] = df['gpu_type'].fillna('None')
@@ -25,7 +22,6 @@ group_cols = [
     'processor_type', 'cores', 'memory','scratch','eth_speed', 'gpu_type', 'gpus', 'flag', 'cpu_arch', "gpu_cc", "gpu_mem"
 ]
 
-
 grouped = (
     df
     .groupby(group_cols)
@@ -35,7 +31,13 @@ grouped = (
     )
     .reset_index()
 )
-print("number of groups:", len(grouped))
+# print("number of groups:", len(grouped))
+
+
+# Sanity check on file
+if len(grouped) < 100 and not 'scc1' in df['host']:
+    print("File failed sanity check! Data file not renewed.")
+    exit(1)
 
 # map cpu names from the file to anchor tags with links for better display
 cpu_display_map = {
@@ -73,7 +75,7 @@ cpu_display_map = {
 grouped['processor_type'] = grouped['processor_type'].map(cpu_display_map)
 
 # add architecture type
-print(grouped.columns)
+# print(grouped.columns)
 grouped['processor_type'] = grouped['processor_type'] + "<br>"
 grouped['processor_type'] = grouped['processor_type'] + grouped["cpu_arch"]
 grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem']].values.tolist()
@@ -97,4 +99,4 @@ with open("data.js", 'w') as outfile:
     outfile.write(";")
 
 # Print preview table
-print(grouped[output_cols].head().to_markdown())
+# print(grouped[output_cols].head().to_markdown())
