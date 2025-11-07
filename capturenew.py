@@ -3,6 +3,10 @@ import json
 
 # load nodes data file
 df = pd.read_csv("/projectnb/rcsmetrics/nodes/data/nodes.csv")
+extra_notes = pd.read_csv("extrainfo.csv")
+
+df = pd.merge(df, extra_notes, on='host', how='left')
+df['notes'] = df['notes'].fillna('None')
 
 # keep only active nodes
 df = df[df["netbox_status"] == "Active"]
@@ -27,7 +31,8 @@ grouped = (
     .groupby(group_cols)
     .agg(
         quantity=('host', 'count'),
-        hostnames=('host', lambda x: sorted(list(x))) # optional: collect sorted list of hostnames per group
+        hostnames=('host', lambda x: sorted(list(x))), # optional: collect sorted list of hostnames per group,
+        notes=('notes', lambda x: sorted(list(x))),
     )
     .reset_index()
 )
@@ -78,8 +83,15 @@ grouped['processor_type'] = grouped['processor_type'].map(cpu_display_map)
 # print(grouped.columns)
 grouped['processor_type'] = grouped['processor_type'] + "<br>"
 grouped['processor_type'] = grouped['processor_type'] + grouped["cpu_arch"]
-grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem']].values.tolist()
+# grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem', 'notes']].values.tolist()
+grouped['extra_info'] = grouped.apply(
+    lambda r: [r['gpu_cc'], r['gpu_mem'], *r['notes']], axis=1
+)
+
+# grouped['extra_info'] = grouped[['gpu_cc', 'gpu_mem', 'notes']].values.tolist()
+
 grouped['extra_info'] = grouped['extra_info'].apply(lambda x: [v for v in x if v != "None"])
+print(grouped)
 grouped['flag'] = grouped['flag'].map({'S':'Shared', 'B':'Buy In'})
 
 
