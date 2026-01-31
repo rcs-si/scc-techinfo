@@ -161,7 +161,7 @@ for row in data:
         continue
     if args.flag and row[11] != args.flag.upper():
         continue
-    if args.cores and int(row[3]) < args.cores:
+    if args.cores and int(row[3]) != args.cores:
         continue
     if args.memory and int(row[4]) < args.memory:
         continue
@@ -169,17 +169,17 @@ for row in data:
         continue
     if args.processor_type and row[1].lower() != args.processor_type.lower():
         continue
-    if args.sockets and int(row[2]) < args.sockets:
+    if args.sockets and int(row[2]) != args.sockets:
         continue
     if args.disk and int(row[5]) < args.disk:
         continue
     if args.scratch and int(row[6]) < args.scratch:
         continue
-    if args.eth_speed and int(row[7]) < args.eth_speed:
+    if args.eth_speed and int(row[7]) != args.eth_speed:
         continue
-    if args.ib_speed and int(row[8]) < args.ib_speed:
+    if args.ib_speed and int(row[8]) != args.ib_speed:
         continue
-    if args.gpus and int(row[10]) < args.gpus:
+    if args.gpus and int(row[10]) != args.gpus:
         continue
     if args.extra_batch and args.extra_batch.lower() not in row[12].lower():
         continue
