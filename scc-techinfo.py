@@ -23,7 +23,7 @@ parser.add_argument("-b", "--extra_batch", type=str, help="Filter rows by extra 
 parser.add_argument("-a", "--avail_cpu", type=int, help="Filter rows by minimum available cpus")
 parser.add_argument("-j", "--avail_gpu", type=int, help="Filter rows by minimum available gpus")
 parser.add_argument("-q", "--queue", type=str, help="Filter rows by queue name")
-parser.add_argument("-r", "--rows", type=int, default=10, help="Number of rows to display (default: 10)")
+parser.add_argument("-r", "--rows", type=int, default=20, help="Number of rows to display (default: 20)")
 parser.add_argument("--all", action="store_true", help="Rather than specify count, display all matching nodes.")
 parser.add_argument("--count", action="store_true", help="Display count of matching nodes, rather than the table.")
 # parser.add_argument("--fast", action="store_true", help="Stops filtering once number of rows to display argument hit")
