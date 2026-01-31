@@ -159,7 +159,7 @@ for row in data:
     #     break
     if args.node and row[0] != args.node:
         continue
-    if args.flag and row[11] != args.flag:
+    if args.flag and row[11] != args.flag.upper():
         continue
     if args.cores and int(row[3]) < args.cores:
         continue
