@@ -44,6 +44,44 @@ output_nodes = result_nodes.stdout
 output_gpus = result_gpus.stdout
 output_queues = result_queues.stdout
 
+awk_script = r'''
+BEGIN { OFS="," }
+
+$0 ~ /^[^[:space:]]/ && $1 != "HOSTNAME" && $1 != "global" {
+    if (have_host) print host, used
+    host = $1
+    used = 0
+    have_host = 1
+    next
+}
+
+$0 ~ /[0-9]+\/[0-9]+\/[0-9]+/ {
+    match($0, /[0-9]+\/[0-9]+\/[0-9]+/, m)
+    split(m[0], s, "/")
+    used += s[2]
+}
+
+END {
+    if (have_host) print host, used
+}
+'''
+
+proc = subprocess.run(
+    ["awk", awk_script],
+    input=output_queues,
+    text=True,
+    capture_output=True,
+    check=True,
+)
+
+# will be total - used
+host_cpu_used = {}
+
+for line in proc.stdout.strip().splitlines():
+    host, used = line.split(",")
+    host_cpu_used[host] = int(used)
+
+
 # Parse the cluster node data
 lines = output_nodes.splitlines()
 data = []
@@ -253,13 +291,17 @@ for row in data:
         continue
 
     count += 1
+    host_cpu_used[row[0]]
     # format cpu/gpu avail to single col
+    cpu_avail_formatted = ""
+    gpu_avail_formatted = ""
     if row[13] != -1: # sometimes don't have info from qgpus
         cpu_avail_formatted = f"{row[13]} / {row[14]}"
-        gpu_avail_formatted = f"{row[15]} / {row[16]}"
     else:
-        cpu_avail_formatted = ""
-        gpu_avail_formatted = ""
+        cpu_avail_formatted = f"{int(row[3])-host_cpu_used[row[0]]} / {int(row[3])}"
+        
+    if row[15] != -1:
+        gpu_avail_formatted = f"{row[15]} / {row[16]}"
     
     # Create final row with formatted availability and queues
     final_row = row[:13] + [cpu_avail_formatted, gpu_avail_formatted, row[17]]
