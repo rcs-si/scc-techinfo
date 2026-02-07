@@ -12,6 +12,7 @@ parser.add_argument("-c", "--cores", type=int, help="Filter rows by minimum numb
 parser.add_argument("-m", "--memory", type=int, help="Filter rows by minimum memory (GB)")
 parser.add_argument("-g", "--gpu_type", type=str, help="Filter rows by GPU type")
 parser.add_argument("-p", "--processor_type", type=str, help="Filter rows by processor type")
+parser.add_argument("-t", "--architecture_type", type=str, help="Filter rows by processor architecture type")
 parser.add_argument("-s", "--sockets", type=int, help="Filter rows by minimum number of sockets")
 parser.add_argument("-d", "--disk", type=int, help="Filter rows by minimum disk space")
 parser.add_argument("-x", "--scratch", type=int, help="Filter rows by minimum scratch space")
@@ -62,7 +63,7 @@ headers = [
 ]
 
 headers = [
-    "Host", "Processor\nType", "Cores", "Memory\n(GB)", 
+    "Host", "Processor\nArchitecture", "Cores", "Memory\n(GB)", 
     "Eth\nSpeed", "IB\nSpeed", "GPU", "GPU\nCount", "(S)hared\n(B)uy in", "CPU\nAvail", "GPU\nAvail", "Queues"
 ]
 
@@ -89,6 +90,65 @@ for line in gpu_lines:
 
 # Convert GPU data into a dictionary for easy lookup
 gpu_dict = {row[0]: row[1:] for row in gpu_data}  # host -> GPU details
+
+# Get architecture from cpu name since used file does not contain arch
+"""
+awk '
+BEGIN {
+    FPAT = "([^,]+)|(\"[^\"]+\")"
+    print "CPU_ARCH_MAP = {"
+}
+{
+    cpu  = $2
+    arch = $21
+
+    gsub(/^"|"$/, "", cpu)
+    gsub(/^"|"$/, "", arch)
+
+    if (cpu != "" && arch != "" && !(cpu in seen)) {
+        printf "    \"%s\": \"%s\",\n", cpu, arch
+        seen[cpu] = 1
+    }
+}
+END {
+    print "}"
+}
+' /projectnb/rcsmetrics/nodes/data/nodes.csv
+"""
+
+CPU_ARCH_MAP = {
+    "Gold-6242": "cascadelake",
+    "E5-2407v2": "ivybridge",
+    "7250": "knl",
+    "E5-2680v4": "broadwell",
+    "EPYC-7501": "naples",
+    "EPYC-7702": "rome",
+    "E5-2660v3": "haswell",
+    "E7-4809v3": "haswell",
+    "E7-8867v4": "broadwell",
+    "E5-2670": "sandybridge",
+    "E5-2650v2": "ivybridge",
+    "E5-2680": "sandybridge",
+    "Gold-6226R": "cascadelake",
+    "Gold-5120": "skylake",
+    "Gold-5118": "skylake",
+    "Gold-6326": "icelake",
+    "Gold-6132": "skylake",
+    "Gold-6426Y": "sapphirerapids",
+    "EPYC-7351": "naples",
+    "E5-2620v3": "haswell",
+    "E5-2620v4": "broadwell",
+    "Platinum-8468": "sapphirerapids",
+    "EPYC-7413": "milan",
+    "EPYC-7302": "rome",
+    "EPYC-9354": "genoa",
+    "Platinum-8358": "icelake",
+    "Gold-6526Y": "emeraldrapids",
+    "EPYC-9124": "genoa",
+    "EPYC-9135": "turin",
+    "6737P": "graniterapids",
+    "6517P": "graniterapids",
+}
 
 # Parse queue information
 def parse_queue_info(output_queues):
@@ -169,6 +229,8 @@ for row in data:
         continue
     if args.processor_type and row[1].lower() != args.processor_type.lower():
         continue
+    if args.architecture_type and CPU_ARCH_MAP.get(row[1],"unknown") != args.architecture_type:
+        continue
     if args.sockets and int(row[2]) != args.sockets:
         continue
     if args.disk and int(row[5]) < args.disk:
@@ -202,6 +264,8 @@ for row in data:
     # Create final row with formatted availability and queues
     final_row = row[:13] + [cpu_avail_formatted, gpu_avail_formatted, row[17]]
     
+    # Replace CPU name with architecture
+    final_row[1] = CPU_ARCH_MAP.get(final_row[1],"unknown")
 
     # Delete some rows:
     final_row.pop(2) # sockets
