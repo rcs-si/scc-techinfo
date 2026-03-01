@@ -330,8 +330,11 @@ if len(filtered_data):
     if args.count:
         print(len(filtered_data))
     else:
-        print_table(filtered_data, headers, int(9e9) if args.all else args.rows)
-        # if not args.fast:
+        num_rows = len(filtered_data) if args.all else min(args.rows, len(filtered_data))
+        if num_rows > 10:
+            print_table(filtered_data[:num_rows] + [headers], headers, int(9e9) if args.all else args.rows + 1)
+        else:
+            print_table(filtered_data, headers, int(9e9) if args.all else args.rows)
         print(f"There are a total of {len(filtered_data)} matching nodes.")
 else:
     print("No matching nodes that fit your requirements!")
